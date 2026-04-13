@@ -63,7 +63,6 @@
             transform: translateY(-5px);
         }
 
-        /* Fixed image dimensions */
         .product-img {
             width: 100%;
             height: 150px;
@@ -160,22 +159,24 @@
         let cartTotal = 0;
         let cartCount = 0;
 
-        // The "Secret Sauce": Converts standard Drive links to direct image links
+        // FIXED: Enhanced Drive Image Link Generator
         function getDirectImgUrl(url) {
-            if (!url) return 'https://via.placeholder.com/150?text=No+Image';
+            if (!url || typeof url !== 'string') return 'https://via.placeholder.com/150?text=No+Image';
             
-            // If it's a Google Drive link, extract the ID and rebuild it
             if (url.includes('drive.google.com')) {
-                let parts = url.split('/d/');
-                if (parts.length > 1) {
-                    let id = parts[1].split('/')[0];
-                    return `https://drive.google.com/uc?export=view&id=${id}`;
+                let id = "";
+                if (url.includes('/d/')) {
+                    id = url.split('/d/')[1].split('/')[0];
+                } else if (url.includes('id=')) {
+                    id = url.split('id=')[1].split('&')[0];
                 }
-                // Fallback for links with id=
-                let match = url.match(/id=([^&]+)/);
-                if (match) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+                
+                if (id) {
+                    // Using the thumbnail direct link format which is more reliable
+                    return `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
+                }
             }
-            return url; // Return original if it's already a direct link or not Drive
+            return url;
         }
 
         async function fetchProducts() {
@@ -193,24 +194,25 @@
                 rows.forEach((row) => {
                     if (!row.c || !row.c[0]) return; 
 
-                    const name = row.c[0].v;
-                    const price = row.c[1] ? row.c[1].v : 0;
-                    const qty = row.c[2] ? row.c[2].v : 0;
+                    const name = row.c[0] ? row.c[0].v : "منتج بدون اسم";
+                    // Handle cases where price might be text or empty
+                    const rawPrice = row.c[1] ? row.c[1].v : 0;
+                    const displayPrice = isNaN(rawPrice) ? "طلب خاص" : rawPrice.toLocaleString() + " د.ع";
                     
-                    // Column D (index 3) is the image
+                    const qty = row.c[2] ? row.c[2].v : 0;
                     const rawImgUrl = row.c[3] ? row.c[3].v : '';
                     const cleanImgUrl = getDirectImgUrl(rawImgUrl);
 
                     const card = document.createElement('div');
                     card.className = 'product-card';
                     card.innerHTML = `
-                        <img src="${cleanImgUrl}" alt="${name}" class="product-img" onerror="this.src='https://via.placeholder.com/150?text=Broken+Link'">
+                        <img src="${cleanImgUrl}" alt="${name}" class="product-img" onerror="this.src='https://via.placeholder.com/150?text=Image+Error'">
                         <div class="product-info">
                             <div class="product-title">${name}</div>
                             <div class="product-stock">متوفر: ${qty}</div>
                         </div>
-                        <div class="product-price">${price.toLocaleString()} د.ع</div>
-                        <button class="add-btn" onclick="addToCart(${price}, event)">
+                        <div class="product-price">${displayPrice}</div>
+                        <button class="add-btn" onclick="addToCart('${rawPrice}', event)">
                             إضافة للسلة
                         </button>
                     `;
@@ -218,13 +220,17 @@
                 });
             } catch (err) {
                 console.error(err);
-                document.getElementById('loading').innerHTML = "خطأ في التحميل. تأكد من إعدادات المشاركة.";
+                document.getElementById('loading').innerHTML = "خطأ في التحميل. تأكد من إعدادات مشاركة الشيت.";
             }
         }
 
+        // FIXED: Safe math for cart total
         function addToCart(price, event) {
+            const numericPrice = parseFloat(price.toString().replace(/,/g, '')) || 0;
+            
             cartCount++;
-            cartTotal += parseFloat(price);
+            cartTotal += numericPrice;
+            
             document.getElementById('cart-count').innerText = cartCount;
             document.getElementById('cart-total').innerText = cartTotal.toLocaleString() + " د.ع";
             
