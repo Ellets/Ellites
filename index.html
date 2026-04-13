@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crystal Store</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --accent:#db5b34; /* Blue accent for general store */
+            --dark: #502c45;
+            --bg: #000000;
+            --white: #ffffff;
+            --text-secondary: #7f8c8d;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding-bottom: 90px;
+            color: var(--dark);
+        }
+
+        /* Clean Modern Header */
+        header {
+            background: var(--dark);
+            padding: 1.2rem;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            text-align: center;
+        }
+
+        .logo {
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        /* Product Grid */
+        .container {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        /* General Product Card */
+        .product-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+
+        .product-info {
+            flex-grow: 1;
+            margin-bottom: 15px;
+        }
+
+        .product-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+
+        .product-stock {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .product-price {
+            color: var(--accent);
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .add-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .add-btn:active { transform: scale(0.96); }
+
+        /* Floating Checkout Bar */
+        .cart-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+            border-top: 1px solid #eee;
+        }
+
+        .cart-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #cart-total {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .checkout-btn {
+            background: var(--dark);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #loading { 
+            text-align: center; 
+            padding: 100px 20px; 
+            font-size: 1.1rem; 
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo"> ELLETS <i class="fas fa-shopping-bag"></i> النخبة</div>
+    </header>
+
+    <div id="loading">
+        <i class="fas fa-spinner fa-spin"></i> جاري مزامنة المنتجات...
+    </div>
+
+    <div class="container" id="product-grid" style="display: none;"></div>
+
+   
+    <script>
+        // Use your real sheet ID here
+        const sheetID = '12XnQD1ne4fu7Q56v-RVzFVMFDCY4p18C22pzyBsBoeg';
+        const base = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json`;
+
+        let cartTotal = 0;
+        let cartCount = 0;
+
+        async function fetchProducts() {
+            try {
+                const response = await fetch(base);
+                const text = await response.text();
+                
+                // Extract clean JSON from the Google Wrapper
+                const jsonText = text.substring(text.indexOf("(") + 1, text.lastIndexOf(")"));
+                const data = JSON.parse(jsonText);
+                const rows = data.table.rows;
+                
+                const grid = document.getElementById('product-grid');
+                document.getElementById('loading').style.display = 'none';
+                grid.style.display = 'grid';
+
+                rows.forEach((row, index) => {
+                    // Safety check for empty rows
+                    if (!row.c || !row.c[0]) return; 
+
+                    const name = row.c[0].v;
+                    const price = row.c[1] ? row.c[1].v : 0;
+                    const qty = row.c[2] ? row.c[2].v : 0;
+
+                    const card = document.createElement('div');
+                    card.className = 'product-card';
+                    card.innerHTML = `
+                        <div class="product-info">
+                            <div class="product-title">${name}</div>
+                            <div class="product-stock">متوفر: ${qty}</div>
+                        </div>
+                        <div class="product-price">${price.toLocaleString()} د.ع</div>
+                        <button class="add-btn" onclick="addToCart(${price}, event)">
+                            إضافة للسلة
+                        </button>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loading').innerHTML = "خطأ: تأكد من أن ملف Google Sheet متاح للعامة (Public)";
+            }
+        }
+
+        function addToCart(price, event) {
+            cartCount++;
+            cartTotal += parseFloat(price);
+            
+            document.getElementById('cart-count').innerText = cartCount;
+            document.getElementById('cart-total').innerText = cartTotal.toLocaleString() + " د.ع";
+            
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "✓ تمت الإضافة";
+            btn.style.background = "#27ae60";
+            
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.background = "var(--accent)";
+            }, 800);
+        }
+
+        // Start Fetching
+        fetchProducts();
+    </script>
+</body>
+</html>
