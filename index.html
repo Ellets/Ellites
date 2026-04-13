@@ -7,7 +7,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --accent:#db5b34; /* Blue accent for general store */
+            --accent:#db5b34; 
             --dark: #502c45;
             --bg: #000000;
             --white: #ffffff;
@@ -22,7 +22,6 @@
             color: var(--dark);
         }
 
-        /* Clean Modern Header */
         header {
             background: var(--dark);
             padding: 1.2rem;
@@ -40,7 +39,6 @@
             letter-spacing: 1px;
         }
 
-        /* Product Grid */
         .container {
             padding: 20px;
             display: grid;
@@ -50,7 +48,6 @@
             margin: auto;
         }
 
-        /* General Product Card */
         .product-card {
             background: var(--white);
             border-radius: 12px;
@@ -64,7 +61,16 @@
 
         .product-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Fixed image dimensions */
+        .product-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background: #f0f0f0;
         }
 
         .product-info {
@@ -103,9 +109,6 @@
             transition: background 0.2s;
         }
 
-        .add-btn:active { transform: scale(0.96); }
-
-        /* Floating Checkout Bar */
         .cart-bar {
             position: fixed;
             bottom: 0;
@@ -120,32 +123,13 @@
             border-top: 1px solid #eee;
         }
 
-        .cart-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        #cart-total {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: var(--dark);
-        }
-
-        .checkout-btn {
-            background: var(--dark);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        #cart-total { font-size: 1.2rem; font-weight: 800; }
 
         #loading { 
             text-align: center; 
             padding: 100px 20px; 
             font-size: 1.1rem; 
-            color: var(--text-secondary);
+            color: white;
         }
     </style>
 </head>
@@ -161,21 +145,43 @@
 
     <div class="container" id="product-grid" style="display: none;"></div>
 
-   
+    <div class="cart-bar">
+        <div class="cart-info">
+            <span id="cart-total">0 د.ع</span>
+            <br><small>القطع: <span id="cart-count">0</span></small>
+        </div>
+        <button class="add-btn" style="width: auto; padding: 10px 25px;">إتمام الطلب</button>
+    </div>
+
     <script>
-        // Use your real sheet ID here
         const sheetID = '12XnQD1ne4fu7Q56v-RVzFVMFDCY4p18C22pzyBsBoeg';
         const base = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json`;
 
         let cartTotal = 0;
         let cartCount = 0;
 
+        // The "Secret Sauce": Converts standard Drive links to direct image links
+        function getDirectImgUrl(url) {
+            if (!url) return 'https://via.placeholder.com/150?text=No+Image';
+            
+            // If it's a Google Drive link, extract the ID and rebuild it
+            if (url.includes('drive.google.com')) {
+                let parts = url.split('/d/');
+                if (parts.length > 1) {
+                    let id = parts[1].split('/')[0];
+                    return `https://drive.google.com/uc?export=view&id=${id}`;
+                }
+                // Fallback for links with id=
+                let match = url.match(/id=([^&]+)/);
+                if (match) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+            }
+            return url; // Return original if it's already a direct link or not Drive
+        }
+
         async function fetchProducts() {
             try {
                 const response = await fetch(base);
                 const text = await response.text();
-                
-                // Extract clean JSON from the Google Wrapper
                 const jsonText = text.substring(text.indexOf("(") + 1, text.lastIndexOf(")"));
                 const data = JSON.parse(jsonText);
                 const rows = data.table.rows;
@@ -184,17 +190,21 @@
                 document.getElementById('loading').style.display = 'none';
                 grid.style.display = 'grid';
 
-                rows.forEach((row, index) => {
-                    // Safety check for empty rows
+                rows.forEach((row) => {
                     if (!row.c || !row.c[0]) return; 
 
                     const name = row.c[0].v;
                     const price = row.c[1] ? row.c[1].v : 0;
                     const qty = row.c[2] ? row.c[2].v : 0;
+                    
+                    // Column D (index 3) is the image
+                    const rawImgUrl = row.c[3] ? row.c[3].v : '';
+                    const cleanImgUrl = getDirectImgUrl(rawImgUrl);
 
                     const card = document.createElement('div');
                     card.className = 'product-card';
                     card.innerHTML = `
+                        <img src="${cleanImgUrl}" alt="${name}" class="product-img" onerror="this.src='https://via.placeholder.com/150?text=Broken+Link'">
                         <div class="product-info">
                             <div class="product-title">${name}</div>
                             <div class="product-stock">متوفر: ${qty}</div>
@@ -208,29 +218,26 @@
                 });
             } catch (err) {
                 console.error(err);
-                document.getElementById('loading').innerHTML = "خطأ: تأكد من أن ملف Google Sheet متاح للعامة (Public)";
+                document.getElementById('loading').innerHTML = "خطأ في التحميل. تأكد من إعدادات المشاركة.";
             }
         }
 
         function addToCart(price, event) {
             cartCount++;
             cartTotal += parseFloat(price);
-            
             document.getElementById('cart-count').innerText = cartCount;
             document.getElementById('cart-total').innerText = cartTotal.toLocaleString() + " د.ع";
             
             const btn = event.target;
-            const originalText = btn.innerText;
+            const oldText = btn.innerText;
             btn.innerText = "✓ تمت الإضافة";
             btn.style.background = "#27ae60";
-            
             setTimeout(() => {
-                btn.innerText = originalText;
+                btn.innerText = oldText;
                 btn.style.background = "var(--accent)";
             }, 800);
         }
 
-        // Start Fetching
         fetchProducts();
     </script>
 </body>
