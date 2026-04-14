@@ -3,248 +3,370 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crystal Store</title>
+    <title>Elite Store | متجر النخبة</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --accent:#db5b34; 
-            --dark: #502c45;
-            --bg: #000000;
-            --white: #ffffff;
-            --text-secondary: #7f8c8d;
+            --primary: #502c45;
+            --primary-light: #633b57;
+            --accent: #db5b34; 
+            --accent-soft: #f27d52;
+            --accent-glow: rgba(219, 91, 52, 0.25);
+            --bg-deep: #120a10; 
+            --card-bg: #1d141b;
+            --text-main: #ffffff;
+            --text-muted: #b5a1b0;
+            --glass: rgba(80, 44, 69, 0.85);
+            
+            /* Status Colors */
+            --status-good: #2ecc71;
+            --status-low: #f1c40f;
+            --status-out: #e74c3c;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-deep);
+            background-image: radial-gradient(circle at 50% 0%, #1d141b 0%, #120a10 100%);
             margin: 0;
-            padding-bottom: 90px;
-            color: var(--dark);
+            padding-bottom: 110px;
+            color: var(--text-main);
+            min-height: 100vh;
         }
 
         header {
-            background: var(--dark);
-            padding: 1.2rem;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 1.5rem 1rem;
+            text-align: center;
             position: sticky;
             top: 0;
-            z-index: 100;
-            text-align: center;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(219, 91, 52, 0.2);
         }
 
         .logo {
-            color: white;
-            font-size: 1.4rem;
-            font-weight: 700;
-            letter-spacing: 1px;
+            font-size: 1.6rem;
+            font-weight: 800;
+            background: linear-gradient(to left, var(--text-main), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            display: block;
         }
 
-        .container {
+        .search-container {
+            max-width: 500px;
+            margin-inline: auto;
+            position: relative;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 12px 45px 12px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(181, 161, 176, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            outline: none;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        .search-container input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .search-container i {
+            position: absolute;
+            right: 18px;
+            top: 15px;
+            color: var(--accent);
+        }
+
+        .category-nav {
             padding: 20px;
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            position: sticky;
+            top: 135px;
+            z-index: 999;
+            background: linear-gradient(to bottom, var(--bg-deep), transparent);
+        }
+
+        .cat-chip {
+            background: var(--card-bg);
+            padding: 8px 22px;
+            border-radius: 50px;
+            white-space: nowrap;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .cat-chip.active {
+            background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+            color: white;
+            box-shadow: 0 5px 15px var(--accent-glow);
+        }
+
+        .section-header {
+            padding: 20px 25px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-header::before {
+            content: '';
+            width: 4px;
+            height: 22px;
+            background: var(--accent);
+            border-radius: 10px;
+        }
+
+        .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
             gap: 20px;
-            max-width: 1000px;
+            padding: 0 20px;
+            max-width: 1200px;
             margin: auto;
         }
 
+        /* Card Styles */
         .product-card {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            transition: all 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid rgba(0,0,0,0.03);
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            transition: all 0.3s ease;
+            position: relative;
         }
 
         .product-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px);
+            border-color: rgba(219, 91, 52, 0.3);
         }
 
         .product-img {
             width: 100%;
-            height: 150px;
+            height: 140px;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: 15px;
             margin-bottom: 12px;
-            background: #f0f0f0;
+            background: #251b23;
         }
 
-        .product-info {
-            flex-grow: 1;
-            margin-bottom: 15px;
+        /* Stock Badges */
+        .stock-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 10px;
         }
+        
+        .status-good { background: rgba(46, 204, 113, 0.15); color: var(--status-good); }
+        .status-low { background: rgba(241, 196, 15, 0.15); color: var(--status-low); }
+        .status-out { background: rgba(231, 76, 60, 0.15); color: var(--status-out); }
 
-        .product-title {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 5px;
-            line-height: 1.4;
-        }
-
-        .product-stock {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        .product-price {
-            color: var(--accent);
+        .price-tag {
+            color: var(--accent-soft);
             font-weight: 800;
             font-size: 1.1rem;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .add-btn {
-            background: var(--accent);
+            background: linear-gradient(to bottom, var(--primary-light), var(--primary));
             color: white;
             border: none;
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
             width: 100%;
-            font-weight: bold;
-            transition: background 0.2s;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #3a1f32;
+            transition: 0.2s;
         }
 
+        .add-btn:active {
+            box-shadow: none;
+            transform: translateY(3px);
+        }
+
+        .btn-disabled {
+            background: #2a2228 !important;
+            opacity: 0.5;
+            cursor: not-allowed !important;
+            box-shadow: none !important;
+        }
+
+        /* Cart Bar */
         .cart-bar {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
             padding: 15px 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
-            border-top: 1px solid #eee;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 2000;
         }
 
-        #cart-total { font-size: 1.2rem; font-weight: 800; }
-
-        #loading { 
-            text-align: center; 
-            padding: 100px 20px; 
-            font-size: 1.1rem; 
-            color: white;
-        }
+        #cart-total { font-weight: 800; color: var(--accent-soft); font-size: 1.2rem; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo"> ELLETS <i class="fas fa-shopping-bag"></i> النخبة</div>
+        <span class="logo">ELITES STORE <i class="fas fa-gem"></i> النخبة</span>
+        <div class="search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="ابحث في المتجر..." onkeyup="filterProducts()">
+        </div>
     </header>
 
-    <div id="loading">
-        <i class="fas fa-spinner fa-spin"></i> جاري مزامنة المنتجات...
+    <div class="category-nav" id="categoryNav">
+        <div class="cat-chip active" onclick="filterCat('all', event)">الكل</div>
+        <div class="cat-chip" onclick="filterCat('food', event)">المواد الغذائية</div>
+        <div class="cat-chip" onclick="filterCat('tools', event)">العدد والأدوات</div>
+        <div class="cat-chip" onclick="filterCat('books', event)">المكتبة</div>
+        <div class="cat-chip" onclick="filterCat('home', event)">المنزل</div>
     </div>
 
-    <div class="container" id="product-grid" style="display: none;"></div>
+    <div id="featured-section">
+        <div class="section-header">عروض النخبة المختارة</div>
+        <div class="grid-container" id="featured-grid"></div>
+    </div>
+
+    <div class="section-header">جميع المنتجات</div>
+    <div class="grid-container" id="main-grid"></div>
 
     <div class="cart-bar">
-        <div class="cart-info">
-            <span id="cart-total">0 د.ع</span>
-            <br><small>القطع: <span id="cart-count">0</span></small>
+        <div>
+            <div id="cart-total">0 د.ع</div>
+            <small style="color:var(--text-muted)">القطع: <span id="cart-count">0</span></small>
         </div>
-        <button class="add-btn" style="width: auto; padding: 10px 25px;">إتمام الطلب</button>
+        <button class="add-btn" style="width:auto; padding: 10px 30px;">إتمام الطلب</button>
     </div>
 
     <script>
         const sheetID = '12XnQD1ne4fu7Q56v-RVzFVMFDCY4p18C22pzyBsBoeg';
         const base = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json`;
 
-        let cartTotal = 0;
-        let cartCount = 0;
+        let allProducts = [];
+        let total = 0;
+        let count = 0;
 
-        // FIXED: Enhanced Drive Image Link Generator
         function getDirectImgUrl(url) {
-            if (!url || typeof url !== 'string') return 'https://via.placeholder.com/150?text=No+Image';
-            
+            if (!url) return 'https://placehold.co/400x400/251b23/db5b34?text=ELITES';
             if (url.includes('drive.google.com')) {
                 let id = "";
-                if (url.includes('/d/')) {
-                    id = url.split('/d/')[1].split('/')[0];
-                } else if (url.includes('id=')) {
-                    id = url.split('id=')[1].split('&')[0];
-                }
-                
-                if (id) {
-                    // Using the thumbnail direct link format which is more reliable
-                    return `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
-                }
+                if (url.includes('/d/')) id = url.split('/d/')[1].split('/')[0];
+                else if (url.includes('id=')) id = url.split('id=')[1].split('&')[0];
+                return `https://drive.google.com/thumbnail?id=${id}&sz=w800`;
             }
             return url;
         }
 
-        async function fetchProducts() {
+        function getStockStatus(qty) {
+            const n = parseInt(qty) || 0;
+            if (n <= 0) return { label: "نفذت الكمية", class: "status-out", off: true };
+            if (n <= 5) return { label: "كمية محدودة", class: "status-low", off: false };
+            return { label: "متوفر بالمخزن", class: "status-good", off: false };
+        }
+
+        async function init() {
             try {
-                const response = await fetch(base);
-                const text = await response.text();
-                const jsonText = text.substring(text.indexOf("(") + 1, text.lastIndexOf(")"));
-                const data = JSON.parse(jsonText);
-                const rows = data.table.rows;
-                
-                const grid = document.getElementById('product-grid');
-                document.getElementById('loading').style.display = 'none';
-                grid.style.display = 'grid';
+                const res = await fetch(base);
+                const text = await res.text();
+                const json = JSON.parse(text.substring(text.indexOf("(") + 1, text.lastIndexOf(")")));
+                const rows = json.table.rows;
 
-                rows.forEach((row) => {
-                    if (!row.c || !row.c[0]) return; 
+                allProducts = rows.map(r => ({
+                    name: r.c[0]?.v || "منتج",
+                    price: parseFloat(r.c[1]?.v) || 0,
+                    qty: r.c[2]?.v || 0,
+                    img: getDirectImgUrl(r.c[3]?.v),
+                    cat: (r.c[4]?.v || "other").toLowerCase(),
+                    featured: r.c[5]?.v === "TRUE" || r.c[5]?.v === true
+                }));
 
-                    const name = row.c[0] ? row.c[0].v : "منتج بدون اسم";
-                    // Handle cases where price might be text or empty
-                    const rawPrice = row.c[1] ? row.c[1].v : 0;
-                    const displayPrice = isNaN(rawPrice) ? "طلب خاص" : rawPrice.toLocaleString() + " د.ع";
-                    
-                    const qty = row.c[2] ? row.c[2].v : 0;
-                    const rawImgUrl = row.c[3] ? row.c[3].v : '';
-                    const cleanImgUrl = getDirectImgUrl(rawImgUrl);
+                renderProducts(allProducts);
+            } catch (e) { console.error(e); }
+        }
 
-                    const card = document.createElement('div');
-                    card.className = 'product-card';
-                    card.innerHTML = `
-                        <img src="${cleanImgUrl}" alt="${name}" class="product-img" onerror="this.src='https://via.placeholder.com/150?text=Image+Error'">
-                        <div class="product-info">
-                            <div class="product-title">${name}</div>
-                            <div class="product-stock">متوفر: ${qty}</div>
-                        </div>
-                        <div class="product-price">${displayPrice}</div>
-                        <button class="add-btn" onclick="addToCart('${rawPrice}', event)">
-                            إضافة للسلة
+        function renderProducts(data) {
+            const mGrid = document.getElementById('main-grid');
+            const fGrid = document.getElementById('featured-grid');
+            const fSec = document.getElementById('featured-section');
+            mGrid.innerHTML = ""; fGrid.innerHTML = "";
+
+            let fCheck = 0;
+
+            data.forEach(p => {
+                const s = getStockStatus(p.qty);
+                const card = `
+                    <div class="product-card" style="${s.off ? 'opacity:0.7' : ''}">
+                        <img src="${p.img}" class="product-img" onerror="this.src='https://placehold.co/400x400/251b23/db5b34?text=ELITES'">
+                        <span class="stock-badge ${s.class}">${s.label}</span>
+                        <div class="product-title">${p.name}</div>
+                        <div class="price-tag">${s.off ? '---' : p.price.toLocaleString() + ' د.ع'}</div>
+                        <button class="add-btn ${s.off ? 'btn-disabled' : ''}" 
+                                ${s.off ? 'disabled' : ''} 
+                                onclick="addToCart(${p.price}, event)">
+                            ${s.off ? 'غير متوفر' : 'إضافة للسلة'}
                         </button>
-                    `;
-                    grid.appendChild(card);
-                });
-            } catch (err) {
-                console.error(err);
-                document.getElementById('loading').innerHTML = "خطأ في التحميل. تأكد من إعدادات مشاركة الشيت.";
-            }
+                    </div>`;
+                mGrid.innerHTML += card;
+                if(p.featured) { fGrid.innerHTML += card; fCheck++; }
+            });
+            fSec.style.display = fCheck > 0 ? 'block' : 'none';
         }
 
-        // FIXED: Safe math for cart total
-        function addToCart(price, event) {
-            const numericPrice = parseFloat(price.toString().replace(/,/g, '')) || 0;
+        function addToCart(p, e) {
+            total += p; count++;
+            document.getElementById('cart-total').innerText = total.toLocaleString() + " د.ع";
+            document.getElementById('cart-count').innerText = count;
             
-            cartCount++;
-            cartTotal += numericPrice;
-            
-            document.getElementById('cart-count').innerText = cartCount;
-            document.getElementById('cart-total').innerText = cartTotal.toLocaleString() + " د.ع";
-            
-            const btn = event.target;
-            const oldText = btn.innerText;
-            btn.innerText = "✓ تمت الإضافة";
-            btn.style.background = "#27ae60";
-            setTimeout(() => {
-                btn.innerText = oldText;
-                btn.style.background = "var(--accent)";
-            }, 800);
+            const b = e.target;
+            const old = b.innerText;
+            b.innerText = "✓ تم";
+            b.style.background = "#27ae60";
+            setTimeout(() => { b.innerText = old; b.style.background = ""; }, 800);
         }
 
-        fetchProducts();
+        function filterProducts() {
+            const t = document.getElementById('searchInput').value.toLowerCase();
+            renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(t)));
+        }
+
+        function filterCat(c, e) {
+            document.querySelectorAll('.cat-chip').forEach(x => x.classList.remove('active'));
+            e.target.classList.add('active');
+            renderProducts(c === 'all' ? allProducts : allProducts.filter(p => p.cat === c));
+        }
+
+        init();
     </script>
 </body>
 </html>
