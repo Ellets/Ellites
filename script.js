@@ -7,7 +7,8 @@ let cartItemCount = 0;
 
 // Utility: Fix Drive Image Links & Fallback
 function getDirectImgUrl(url) {
-    if (!url) return 'https://placehold.co/400x400/251b23/db5b34?text=ELITES';
+    if (!url || typeof url !== 'string') return 'https://placehold.co/400x400/251b23/db5b34?text=ELITES';
+    
     if (url.includes('drive.google.com')) {
         let id = "";
         if (url.includes('/d/')) id = url.split('/d/')[1].split('/')[0];
@@ -30,22 +31,36 @@ async function init() {
     try {
         const res = await fetch(base);
         const text = await res.text();
-        const json = JSON.parse(text.substring(text.indexOf("(") + 1, text.lastIndexOf(")")));
+        
+        // Robust cleaning of Google's JSON wrapper
+        const start = text.indexOf('{');
+        const end = text.lastIndexOf('}');
+        const json = JSON.parse(text.substring(start, end + 1));
         const rows = json.table.rows;
 
-        allProducts = rows.map(r => ({
-            name: r.c[0]?.v || "منتج",
-            price: parseFloat(r.c[1]?.v) || 0,
-            qty: r.c[2]?.v || 0,
-            type: r.c[3]?.v || "عام",             // Column D
-            img: getDirectImgUrl(r.c[4]?.v),       // Column E
-            cat: (r.c[5]?.v || "other").toLowerCase(), // Column F
-            featured: r.c[6]?.v === "TRUE" || r.c[6]?.v === true // Column G
-        }));
+        allProducts = rows.map(r => {
+            // SKIP header row and handle the shift:
+            // Column A (r.c[0]) is Timestamp
+            // Column B (r.c[1]) is Name
+            if (!r.c[1] || r.c[1].v === "Name" || r.c[1].v === "name") return null;
+
+            return {
+                name: r.c[1]?.v || "منتج",            // Column B
+                price: parseFloat(r.c[2]?.v) || 0,     // Column C
+                qty: r.c[3]?.v || 0,                   // Column D
+                type: r.c[4]?.v || "عام",             // Column E
+                img: getDirectImgUrl(r.c[5]?.v),      // Column F
+                cat: (r.c[6]?.v || "other").toLowerCase(), // Column G
+                featured: r.c[7]?.v === "TRUE" || r.c[7]?.v === true // Column H
+            };
+        }).filter(p => p !== null); // Remove empty or skipped rows
 
         generateDynamicButtons();
         renderProducts(allProducts);
-    } catch (e) { console.error("Data loading failed", e); }
+    } catch (e) { 
+        console.error("Data loading failed", e); 
+        document.getElementById('main-grid').innerHTML = '<p style="color:white; text-align:center;">خطأ في تحميل البيانات</p>';
+    }
 }
 
 // Build dynamic filters from "Type" column
@@ -63,7 +78,7 @@ function generateDynamicButtons() {
 // Filter Logic
 function filterByPageType(type, e) {
     document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
-    e.target.classList.add('active');
+    if (e) e.target.classList.add('active');
     renderProducts(type === 'all' ? allProducts : allProducts.filter(p => p.type === type));
 }
 
@@ -73,7 +88,9 @@ function renderProducts(data) {
     const fGrid = document.getElementById('featured-grid');
     const fSec = document.getElementById('featured-section');
     
-    mGrid.innerHTML = ""; fGrid.innerHTML = "";
+    if (mGrid) mGrid.innerHTML = ""; 
+    if (fGrid) fGrid.innerHTML = "";
+    
     let fCount = 0;
 
     data.forEach(p => {
@@ -92,8 +109,11 @@ function renderProducts(data) {
                 </button>
             </div>`;
         
-        mGrid.innerHTML += cardHtml;
-        if(p.featured) { fGrid.innerHTML += cardHtml; fCount++; }
+        if (mGrid) mGrid.innerHTML += cardHtml;
+        if (p.featured && fGrid) { 
+            fGrid.innerHTML += cardHtml; 
+            fCount++; 
+        }
     });
     if (fSec) fSec.style.display = fCount > 0 ? 'block' : 'none';
 }
@@ -102,12 +122,15 @@ function renderProducts(data) {
 function expandImage(src) {
     const modal = document.getElementById('imageModal');
     const modalImg = document.getElementById('expandedImg');
-    modal.style.display = "block";
-    modalImg.src = src;
+    if (modal && modalImg) {
+        modal.style.display = "block";
+        modalImg.src = src;
+    }
 }
 
 function closeModal() {
-    document.getElementById('imageModal').style.display = "none";
+    const modal = document.getElementById('imageModal');
+    if (modal) modal.style.display = "none";
 }
 
 // Cart Functionality
@@ -126,8 +149,11 @@ function addToCart(price, event) {
 
 // Search Logic
 function filterProducts() {
-    const q = document.getElementById('searchInput').value.toLowerCase();
+    const searchInput = document.getElementById('searchInput');
+    if (!searchInput) return;
+    const q = searchInput.value.toLowerCase();
     renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(q)));
 }
 
+// Run everything
 init();
