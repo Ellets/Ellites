@@ -5,9 +5,9 @@ let allProducts = [];
 let totalCartPrice = 0;
 let cartItemCount = 0;
 
-// Utility: Fix Drive Image Links
+// Utility: Fix Drive Image Links & Fallback
 function getDirectImgUrl(url) {
-    if (!url || typeof url !== 'string') return 'https://placehold.co/400x400/251b23/db5b34?text=ELITES';
+    if (!url) return 'https://placehold.co/400x400/251b23/db5b34?text=ELITES';
     if (url.includes('drive.google.com')) {
         let id = "";
         if (url.includes('/d/')) id = url.split('/d/')[1].split('/')[0];
@@ -22,7 +22,7 @@ function getStockStatus(qty) {
     const n = parseInt(qty) || 0;
     if (n <= 0) return { label: "نفذت الكمية", class: "status-out", off: true };
     if (n <= 5) return { label: "كمية محدودة", class: "status-low", off: false };
-    return { label: "متوفر", class: "status-good", off: false };
+    return { label: "متوفر بجودة", class: "status-good", off: false };
 }
 
 // Fetch and Map Data
@@ -30,61 +30,63 @@ async function init() {
     try {
         const res = await fetch(base);
         const text = await res.text();
-        
-        // This is the most reliable way to extract the JSON
-        const start = text.indexOf('{');
-        const end = text.lastIndexOf('}');
-        const json = JSON.parse(text.substring(start, end + 1));
+        // Updated cleaning logic to be more robust
+        const json = JSON.parse(text.substring(text.indexOf("(") + 1, text.lastIndexOf(")")));
         const rows = json.table.rows;
 
         allProducts = rows.map(r => {
-            // We look at Column B (Index 1) for the Name. 
-            // If it's the header row or empty, we skip it.
+            // SKIP HEADER: If the name column is "Name" or empty, skip it.
             if (!r.c[1] || r.c[1].v === "Name" || r.c[1].v === "name") return null;
 
             return {
-                name: r.c[1]?.v || "منتج",            // Column B
-                price: parseFloat(r.c[2]?.v) || 0,     // Column C
-                qty: r.c[3]?.v || 0,                   // Column D
-                type: r.c[4]?.v || "عام",             // Column E
-                img: getDirectImgUrl(r.c[5]?.v),      // Column F
-                cat: (r.c[6]?.v || "all").toString().toLowerCase(),
-                featured: r.c[7]?.v === "TRUE" || r.c[7]?.v === true
+                // SHIFTED INDICES BY +1 TO SKIP TIMESTAMP
+                name: r.c[1]?.v || "منتج",           // Was [0], now [1]
+                price: parseFloat(r.c[2]?.v) || 0,    // Was [1], now [2]
+                qty: r.c[3]?.v || 0,                  // Was [2], now [3]
+                type: r.c[4]?.v || "عام",            // Was [3], now [4]
+                img: getDirectImgUrl(r.c[5]?.v),     // Was [4], now [5]
+                cat: (r.c[6]?.v || "other").toLowerCase(), // Was [5], now [6]
+                featured: r.c[7]?.v === "TRUE" || r.c[7]?.v === true // Was [6], now [7]
             };
         }).filter(p => p !== null);
 
         generateDynamicButtons();
         renderProducts(allProducts);
-    } catch (e) { 
-        console.error("Data loading failed", e); 
-        document.getElementById('main-grid').innerHTML = '<p style="color:white; text-align:center;">خطأ في الاتصال بالبيانات</p>';
-    }
+    } catch (e) { console.error("Data loading failed", e); }
 }
 
+// Build dynamic filters from "Type" column
 function generateDynamicButtons() {
     const nav = document.getElementById('categoryNav');
     if (!nav) return;
     const types = [...new Set(allProducts.map(p => p.type))].filter(t => t);
+    
     nav.innerHTML = `<div class="cat-chip active" onclick="filterByPageType('all', event)">الكل</div>`;
     types.forEach(t => {
         nav.innerHTML += `<div class="cat-chip" onclick="filterByPageType('${t}', event)">${t}</div>`;
     });
 }
 
+// Filter Logic
 function filterByPageType(type, e) {
     document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
-    if (e) e.target.classList.add('active');
+    if (e && e.target) e.target.classList.add('active');
     renderProducts(type === 'all' ? allProducts : allProducts.filter(p => p.type === type));
 }
 
+// UI Rendering
 function renderProducts(data) {
     const mGrid = document.getElementById('main-grid');
-    if (!mGrid) return;
-    mGrid.innerHTML = ""; 
+    const fGrid = document.getElementById('featured-grid');
+    const fSec = document.getElementById('featured-section');
+    
+    if (mGrid) mGrid.innerHTML = ""; 
+    if (fGrid) fGrid.innerHTML = "";
+    let fCount = 0;
 
     data.forEach(p => {
         const s = getStockStatus(p.qty);
-        mGrid.innerHTML += `
+        const cardHtml = `
             <div class="product-card" style="${s.off ? 'opacity:0.7' : ''}">
                 <img src="${p.img}" class="product-img" onclick="expandImage('${p.img}')" onerror="this.src='https://placehold.co/400x400/251b23/db5b34?text=ELITES'">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -97,13 +99,21 @@ function renderProducts(data) {
                     ${s.off ? 'غير متوفر' : 'إضافة للسلة'}
                 </button>
             </div>`;
+        
+        if (mGrid) mGrid.innerHTML += cardHtml;
+        if (p.featured && fGrid) { fGrid.innerHTML += cardHtml; fCount++; }
     });
+    if (fSec) fSec.style.display = fCount > 0 ? 'block' : 'none';
 }
 
+// Image Expansion (Modal)
 function expandImage(src) {
     const modal = document.getElementById('imageModal');
     const modalImg = document.getElementById('expandedImg');
-    if (modal && modalImg) { modal.style.display = "block"; modalImg.src = src; }
+    if (modal && modalImg) {
+        modal.style.display = "block";
+        modalImg.src = src;
+    }
 }
 
 function closeModal() {
@@ -111,11 +121,13 @@ function closeModal() {
     if (modal) modal.style.display = "none";
 }
 
+// Cart Functionality
 function addToCart(price, event) {
     totalCartPrice += price;
     cartItemCount++;
     document.getElementById('cart-total').innerText = totalCartPrice.toLocaleString() + " د.ع";
     document.getElementById('cart-count').innerText = cartItemCount;
+    
     const btn = event.target;
     const oldText = btn.innerText;
     btn.innerText = "✓";
@@ -123,8 +135,11 @@ function addToCart(price, event) {
     setTimeout(() => { btn.innerText = oldText; btn.style.background = ""; }, 800);
 }
 
+// Search Logic
 function filterProducts() {
-    const q = document.getElementById('searchInput').value.toLowerCase();
+    const input = document.getElementById('searchInput');
+    if (!input) return;
+    const q = input.value.toLowerCase();
     renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(q)));
 }
 
