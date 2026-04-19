@@ -33,6 +33,128 @@ async function init() {
         const rows = json.table.rows;
 
         allProducts = rows.map(r => {
+            // Get all cell values as a simple list of strings
+            const cells = r.c.map(cell => cell?.v ? cell.v.toString() : "");
+            
+            // 1. Find the Image URL (The cell that contains "http")
+            const imgUrl = cells.find(c => c.includes("http")) || "";
+            
+            // 2. Find the Name (Usually the first long text that isn't a URL)
+            const name = cells.find(c => c.length > 3 && !c.includes("http") && isNaN(c)) || "منتج";
+            
+            // 3. Find the Price (The largest number in the row)
+            const numbers = cells.map(c => parseFloat(c)).filter(n => !isNaN(n) && n > 100);
+            const price = numbers.length > 0 ? Math.max(...numbers) : 0;
+            
+            // 4. Find the Stock (A smaller number, usually after the price or before)
+            const stock = cells.find(c => !isNaN(c) && parseFloat(c) < 1000) || 0;
+            
+            // 5. Find Type (A short text string)
+            const type = cells.find(c => c.length > 2 && c !== name && !c.includes("http") && isNaN(c)) || "عام";
+
+            if (name === "Name" || name === "منتج" && !imgUrl) return null;
+
+            return {
+                name: name,
+                price: price,
+                qty: stock,
+                type: type,
+                img: getDirectImgUrl(imgUrl),
+                featured: cells.some(c => c.toUpperCase() === "TRUE")
+            };
+        }).filter(p => p !== null);
+
+        generateDynamicButtons();
+        renderProducts(allProducts);
+    } catch (e) { 
+        console.error("Critical Load Error", e); 
+    }
+}
+
+// ... (Rest of your functions: generateDynamicButtons, renderProducts, addToCart, etc. remain the same)
+
+function generateDynamicButtons() {
+    const nav = document.getElementById('categoryNav');
+    if (!nav) return;
+    const types = [...new Set(allProducts.map(p => p.type))].filter(t => t);
+    nav.innerHTML = `<div class="cat-chip active" onclick="filterByPageType('all', event)">الكل</div>`;
+    types.forEach(t => {
+        nav.innerHTML += `<div class="cat-chip" onclick="filterByPageType('${t}', event)">${t}</div>`;
+    });
+}
+
+function filterByPageType(type, e) {
+    document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+    if (e) e.target.classList.add('active');
+    renderProducts(type === 'all' ? allProducts : allProducts.filter(p => p.type === type));
+}
+
+function renderProducts(data) {
+    const mGrid = document.getElementById('main-grid');
+    if (mGrid) mGrid.innerHTML = ""; 
+    data.forEach(p => {
+        const s = getStockStatus(p.qty);
+        mGrid.innerHTML += `
+            <div class="product-card" style="${s.off ? 'opacity:0.7' : ''}">
+                <img src="${p.img}" class="product-img">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="stock-badge ${s.class}">${s.label}</span>
+                    <span style="font-size:0.65rem; color:var(--accent);">${p.type}</span>
+                </div>
+                <div class="product-title">${p.name}</div>
+                <div class="price-tag">${s.off ? '---' : p.price.toLocaleString() + ' د.ع'}</div>
+                <button class="add-btn" ${s.off ? 'disabled' : ''} onclick="addToCart(${p.price}, event)">
+                    ${s.off ? 'غير متوفر' : 'إضافة للسلة'}
+                </button>
+            </div>`;
+    });
+}
+
+function addToCart(price, event) {
+    totalCartPrice += price;
+    cartItemCount++;
+    document.getElementById('cart-total').innerText = totalCartPrice.toLocaleString() + " د.ع";
+    document.getElementById('cart-count').innerText = cartItemCount;
+    const btn = event.target;
+    btn.innerText = "✓";
+    setTimeout(() => { btn.innerText = "إضافة للسلة"; }, 800);
+}
+
+init();const sheetID = '12XnQD1ne4fu7Q56v-RVzFVMFDCY4p18C22pzyBsBoeg';
+const base = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json`;
+
+let allProducts = [];
+let totalCartPrice = 0;
+let cartItemCount = 0;
+
+function getDirectImgUrl(url) {
+    if (!url || typeof url !== 'string') return 'https://placehold.co/400x400/251b23/db5b34?text=ELITES';
+    if (url.includes('drive.google.com')) {
+        let id = "";
+        if (url.includes('/d/')) id = url.split('/d/')[1].split('/')[0];
+        else if (url.includes('id=')) id = url.split('id=')[1].split('&')[0];
+        return `https://drive.google.com/thumbnail?id=${id}&sz=w800`;
+    }
+    return url;
+}
+
+function getStockStatus(qty) {
+    const n = parseInt(qty) || 0;
+    if (n <= 0) return { label: "نفذت الكمية", class: "status-out", off: true };
+    if (n <= 5) return { label: "كمية محدودة", class: "status-low", off: false };
+    return { label: "متوفر بجودة", class: "status-good", off: false };
+}
+
+async function init() {
+    try {
+        const res = await fetch(base);
+        const text = await res.text();
+        const start = text.indexOf('{');
+        const end = text.lastIndexOf('}');
+        const json = JSON.parse(text.substring(start, end + 1));
+        const rows = json.table.rows;
+
+        allProducts = rows.map(r => {
             // Check Column B (index 1) for the name. Skip if it's the header or empty.
             const rawName = r.c[1]?.v;
             if (!rawName || rawName.toLowerCase() === "name") return null;
