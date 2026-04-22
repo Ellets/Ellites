@@ -84,3 +84,29 @@ header {
     display: flex; justify-content: space-between; align-items: center;
     border-top: 3px solid var(--accent); z-index: 2000;
 }
+
+/* تنسيق زر إتمام الطلب المطور */
+.checkout-btn {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+    color: #1e3a47; /* لون نص داكن ليتناسب مع الخلفية الذهبية */
+    border: none;
+    padding: 10px 25px;
+    border-radius: 50px; /* شكل بيضاوي أنيق */
+    font-weight: 800;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.checkout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
+    filter: brightness(1.1);
+}
+
+.checkout-btn:active {
+    transform: translateY(0);
+    filter: brightness(0.9);
+}
