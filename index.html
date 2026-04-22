@@ -1,16 +1,59 @@
+
+Skip to content
+
+    Ellets
+    Ellites
+
+Repository navigation
+
+    Code
+    Issues
+    Pull requests
+    Actions
+    Projects
+    Wiki
+    Security and quality
+    Insights
+    Settings
+
+Commit b65afa6
+Ellets
+Ellets
+authored
+9 minutes ago
+··
+Update index.html
+main
+
+1 parent 
+650395c
+ commit 
+b65afa6
+
+File tree
+
+    index.html
+
+1 file changed
++59
+-37
+lines changed
+ 
+‎index.html‎
++59-37Lines changed: 59 additions & 37 deletions
+Original file line number	Diff line number	Diff line change
+@@ -1,61 +1,83 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    
     <meta name="google-site-verification" content="d49268c780f02ef9" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elite Store | متجر النخبة</title>
-
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="style.css">
-
     <style>
         /* Modern styling for the Admin Link */
         .admin-link-container {
@@ -34,35 +77,59 @@
 </head>
 <body>
 
+    <header>
 <header>
     <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
         <span class="logo">ELITES STORE <i class="fas fa-gem"></i> النخبة</span>
+        <div class="search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="ابحث في المتجر..." onkeyup="filterProducts()">
+        </div>
+    </header>
+    <nav class="category-nav" id="categoryNav">
+        <div class="cat-chip active" onclick="filterCat('all', event)">الكل</div>
+        <div class="cat-chip" onclick="filterCat('food', event)">المواد الغذائية</div>
+        <div class="cat-chip" onclick="filterCat('tools', event)">العدد والأدوات</div>
+        <div class="cat-chip" onclick="filterCat('books', event)">المكتبة</div>
+        <div class="cat-chip" onclick="filterCat('home', event)">المنزل</div>
+    </nav>
+    <section id="featured-section">
+        <div class="section-header">عروض النخبة المختارة</div>
+        <div class="grid-container" id="featured-grid">
+            </div>
+    </section>
+    <section>
+        <div class="section-header">جميع المنتجات</div>
+        <div class="grid-container" id="main-grid">
+            </div>
+    </section>
+    <div class="cart-bar">
+        <div>
+            <div id="cart-total">0 د.ع</div>
+            <small class="cart-details">القطع: <span id="cart-count">0</span></small>
+        </div>
+        <button class="checkout-btn">إتمام الطلب</button>
         
         <a href="requestlist.html" class="admin-btn">
             <i class="fas fa-user-shield"></i> لوحة الإدارة
         </a>
     </div>
-
     <div class="search-container" style="margin-top: 15px;">
         <i class="fas fa-search"></i>
         <input type="text" id="searchInput" placeholder="ابحث في المتجر..." onkeyup="filterProducts()">
     </div>
 </header>
-
 <nav class="category-nav" id="categoryNav">
     <div class="cat-chip active" onclick="filterByPageType('all', event)">الكل</div>
 </nav>
-
 <section id="featured-section">
     <div class="section-header">عروض النخبة المختارة</div>
     <div class="grid-container" id="featured-grid"></div>
 </section>
-
 <section>
     <div class="section-header">جميع المنتجات</div>
     <div class="grid-container" id="main-grid"></div>
 </section>
-
 <div class="cart-bar">
     <div>
         <div id="cart-total">0 د.ع</div>
@@ -71,13 +138,20 @@
     <button class="checkout-btn">إتمام الطلب</button>
 </div>
 
+    <div id="imageModal" class="modal" onclick="closeModal()">
 <div id="imageModal" class="modal" onclick="closeModal()">
     <span class="close">&times;</span>
     <img class="modal-content" id="expandedImg">
     <div id="caption"></div>
 </div>
 
+    <script src="script.js"></script>
 <script src="script.js"></script>
 
 </body>
 </html>
+0 commit comments
+Comments
+0 (0)
+
+You're not receiving notifications from this thread.
