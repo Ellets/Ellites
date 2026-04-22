@@ -86,4 +86,14 @@ header {
 }
 
 
+.product-type {
+    font-size: 0.65rem;
+    color: var(--accent); /* باللون الذهبي */
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    font-weight: 700;
+    opacity: 0.8;
+}
+
+
 cant find it
