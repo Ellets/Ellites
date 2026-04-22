@@ -40,6 +40,7 @@ function renderProducts(data) {
         <div class="product-card">
             <img src="${p.img}" class="product-img" onclick="openImageModal('${p.img}')">
             ${getStockBadge(p.stock)}
+            <div class="product-type">${p.type}</div> 
             <div class="product-title">${p.name}</div>
             <div class="price-tag">${p.price.toLocaleString()} د.ع</div>
             <button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, event)" ${p.stock <= 0 ? 'disabled' : ''}>
