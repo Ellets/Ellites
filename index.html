@@ -1,113 +1,103 @@
-
+# This tells the browser that this is a modern HTML5 document.
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    
-    <meta name="google-site-verification" content="d49268c780f02ef9" />
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite Store | متجر النخبة</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <style>
-        /* Modern styling for the Admin Link */
-        .admin-link-container {
-            display: flex;
-            justify-content: flex-end;
-            padding: 5px 15px;
-        }
-        .admin-btn {
-            color: var(--accent);
-            text-decoration: none;
-            font-size: 0.75rem;
-            font-weight: bold;
-            opacity: 0.6;
-            transition: 0.3s;
-        }
-        .admin-btn:hover {
-            opacity: 1;
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
 
-    <header>
+# The start of the HTML document. 
+# 'lang="ar"' tells search engines the language is Arabic.
+# 'dir="rtl"' tells the browser to flip the layout for Right-to-Left reading.
+<html lang="ar" dir="rtl">
+
+# The 'head' section contains invisible info (metadata) and links to external files.
+<head>
+    # A special tag that proves to Google Search Console that you own this website.
+    <meta name="google-site-verification" content="d49268c780f02ef9" />
+    
+    # Standard character encoding. 'UTF-8' allows Arabic letters to display correctly.
+    <meta charset="UTF-8">
+
+    # Critical for mobile phones. It makes the site fit the screen width of a phone.
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    # The name that appears on the browser tab or bookmark.
+    <title>Elite Store | متجر النخبة</title>
+
+    # A link to the Font Awesome library to use icons (like the search icon or the gem).
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    # Imports the "Cairo" font from Google. It is one of the best fonts for Arabic web design.
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    # Connects your HTML to your CSS file (the design and colors).
+    <link rel="stylesheet" href="style.css">
+
+# Closes the head section.
+</head>
+
+# The 'body' contains everything the user actually sees on their screen.
+<body>
+ 
+# The top part of the website.
 <header>
-    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-        <span class="logo">ELITES STORE <i class="fas fa-gem"></i> النخبة</span>
-        <div class="search-container">
-            <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="ابحث في المتجر..." onkeyup="filterProducts()">
-        </div>
-    </header>
-    <nav class="category-nav" id="categoryNav">
-        <div class="cat-chip active" onclick="filterCat('all', event)">الكل</div>
-        <div class="cat-chip" onclick="filterCat('food', event)">المواد الغذائية</div>
-        <div class="cat-chip" onclick="filterCat('tools', event)">العدد والأدوات</div>
-        <div class="cat-chip" onclick="filterCat('books', event)">المكتبة</div>
-        <div class="cat-chip" onclick="filterCat('home', event)">المنزل</div>
-    </nav>
-    <section id="featured-section">
-        <div class="section-header">عروض النخبة المختارة</div>
-        <div class="grid-container" id="featured-grid">
-            </div>
-    </section>
-    <section>
-        <div class="section-header">جميع المنتجات</div>
-        <div class="grid-container" id="main-grid">
-            </div>
-    </section>
-    <div class="cart-bar">
-        <div>
-            <div id="cart-total">0 د.ع</div>
-            <small class="cart-details">القطع: <span id="cart-count">0</span></small>
-        </div>
-        <button class="checkout-btn">إتمام الطلب</button>
-        
-        <a href="requestlist.html" class="admin-btn">
-            <i class="fas fa-user-shield"></i> لوحة الإدارة
-        </a>
-    </div>
-    <div class="search-container" style="margin-top: 15px;">
+    # The logo area. The <i> tag is the Font Awesome "Gem" icon.
+    <span class="logo">ELITES STORE <i class="fas fa-gem"></i> النخبة</span>
+    
+    # The container for the search box.
+    <div class="search-container">
+        # The magnifying glass icon.
         <i class="fas fa-search"></i>
+        # The text input where users type. 'onkeyup' tells JavaScript to search while typing.
         <input type="text" id="searchInput" placeholder="ابحث في المتجر..." onkeyup="filterProducts()">
     </div>
 </header>
+ 
+# The Navigation bar for categories (Food, Tools, etc.).
+# These are empty 'chips' that JavaScript will fill with data later.
 <nav class="category-nav" id="categoryNav">
-    <div class="cat-chip active" onclick="filterByPageType('all', event)">الكل</div>
+    <div class="cat-chip active" onclick="filterCat('all', event)">الكل</div>
+    <div class="cat-chip" onclick="filterCat('food', event)">المواد الغذائية</div>
+    <div class="cat-chip" onclick="filterCat('tools', event)">العدد والأدوات</div>
+    <div class="cat-chip" onclick="filterCat('books', event)">المكتبة</div>
+    <div class="cat-chip" onclick="filterCat('home', event)">المنزل</div>
 </nav>
+ 
+# A section for "Featured" or "Gold" items you want to highlight.
 <section id="featured-section">
     <div class="section-header">عروض النخبة المختارة</div>
+    # This ID 'featured-grid' is where JavaScript will place the featured product cards.
     <div class="grid-container" id="featured-grid"></div>
 </section>
+ 
+# The main section for the rest of your items.
 <section>
     <div class="section-header">جميع المنتجات</div>
+    # This ID 'main-grid' is where the bulk of your products will appear.
     <div class="grid-container" id="main-grid"></div>
 </section>
+ 
+# A 'Cart Bar' that stays at the bottom of the screen.
 <div class="cart-bar">
     <div>
+        # Shows the total price in Iraqi Dinars (د.ع).
         <div id="cart-total">0 د.ع</div>
+        # Shows the count of items in the basket.
         <small class="cart-details">القطع: <span id="cart-count">0</span></small>
     </div>
+    # The button users click to finish their purchase.
     <button class="checkout-btn">إتمام الطلب</button>
 </div>
-
-    <div id="imageModal" class="modal" onclick="closeModal()">
+ 
+# A hidden 'Modal' (Pop-up). It appears when you click a product image to see it larger.
 <div id="imageModal" class="modal" onclick="closeModal()">
+    # The 'X' symbol to close the pop-up.
     <span class="close">&times;</span>
+    # The image element that JavaScript will fill with the clicked product's photo.
     <img class="modal-content" id="expandedImg">
     <div id="caption"></div>
 </div>
-
-    <script src="script.js"></script>
+ 
+# Connects your HTML to your JavaScript file (the functionality/logic).
 <script src="script.js"></script>
-
+ 
+# Closes the body.
 </body>
+# Closes the entire HTML document.
 </html>
-0 commit comments
-Comments
-0 (0)
-
-You're not receiving notifications from this thread.
