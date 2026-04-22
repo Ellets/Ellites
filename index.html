@@ -6,14 +6,13 @@
     <title>Elite Store | متجر النخبة</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=1.2">
 </head>
 <body>
 
     <header>
-        <span class="logo">ELITES STORE <i class="fas fa-gem"></i> النخبة</span>
+        <span class="logo">ELITE STORE <i class="fas fa-gem"></i> النخبة</span>
         <div class="search-container">
-            <i class="fas fa-search search-icon"></i>
             <input type="text" id="searchInput" placeholder="ابحث عن منتج..." onkeyup="filterProducts()">
         </div>
     </header>
@@ -24,9 +23,7 @@
 
     <div id="status-msg" class="status-message">جاري تحميل المنتجات...</div>
 
-    <section id="main-section">
-        <div class="grid-container" id="main-grid"></div>
-    </section>
+    <div class="grid-container" id="main-grid"></div>
 
     <div class="cart-bar">
         <div class="cart-info">
@@ -34,6 +31,11 @@
             <small>القطع: <span id="cart-count">0</span></small>
         </div>
         <button class="checkout-btn" onclick="handleCheckout()">إتمام الطلب</button>
+    </div>
+
+    <div id="imageModal" class="modal" onclick="closeImageModal()">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content" id="imgFull">
     </div>
 
     <div id="checkoutModal" class="modal">
@@ -50,6 +52,6 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=1.2"></script>
 </body>
 </html>
