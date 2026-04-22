@@ -1,59 +1,134 @@
 const sheetID = '12XnQD1ne4fu7Q56v-RVzFVMFDCY4p18C22pzyBsBoeg';
 const base = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json`;
+const actionUrl = "https://docs.google.com/forms/d/e/1FAIpQLScLPaeCxP_gUJBPRTiV0IzcnNhoFWlOkTiQV6TpaauW-3jjSQ/formResponse";
 
 let allProducts = [];
-let cart = []; // مصفوفة لتخزين محتويات السلة
+let cart = [];
 let totalCartPrice = 0;
 
-// Utility: Fix Drive Image Links
-function getDirectImgUrl(url) {
-    if (!url) return 'https://placehold.co/400x400/251b23/db5b34?text=ELITES';
+// تحميل البيانات الأولية
+async function init() {
+    try {
+        const response = await fetch(base);
+        const text = await response.text();
+        const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
+        const rows = json.table.rows;
+
+        allProducts = rows.map(r => {
+            if (!r.c[1] || r.c[1].v === "Name") return null;
+            return {
+                name: r.c[1]?.v || "منتج",
+                price: parseFloat(r.c[2]?.v) || 0,
+                type: r.c[4]?.v || "عام",
+                img: formatImg(r.c[5]?.v)
+            };
+        }).filter(p => p !== null);
+
+        document.getElementById('status-msg').style.display = 'none';
+        renderCategories();
+        renderProducts(allProducts);
+    } catch (err) {
+        document.getElementById('status-msg').innerText = "خطأ في تحميل البيانات";
+    }
+}
+
+function handleCheckout() {
+    if (cart.length === 0) { alert("السلة فارغة"); return; }
+    document.getElementById('checkoutModal').style.display = 'block';
+    
+    // استرجاع البيانات المخزنة
+    ['custName', 'custCity', 'custPhone', 'custEmail'].forEach(id => {
+        document.getElementById(id).value = localStorage.getItem(id) || '';
+    });
+}
+
+function closeModal() { document.getElementById('checkoutModal').style.display = 'none'; }
+
+// إغلاق النافذة عند الضغط خارجها
+window.onclick = function(e) {
+    if (e.target == document.getElementById('checkoutModal')) closeModal();
+}
+
+document.getElementById('orderForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('custName').value;
+    const city = document.getElementById('custCity').value;
+    const phone = document.getElementById('custPhone').value;
+    const email = document.getElementById('custEmail').value;
+
+    // حفظ البيانات
+    localStorage.setItem('custName', name);
+    localStorage.setItem('custCity', city);
+    localStorage.setItem('custPhone', phone);
+    localStorage.setItem('custEmail', email);
+
+    let summary = "";
+    cart.forEach(i => summary += `${i.name} (x${i.quantity}), `);
+    const finalTotal = totalCartPrice.toLocaleString() + " د.ع";
+
+    // إرسال البيانات باستخدام الـ IDs الستة التي استخرجتها
+    const formData = new URLSearchParams();
+    formData.append('entry.452117410', name);      // الاسم
+    formData.append('entry.904354936', city);      // المدينة
+    formData.append('entry.71483428', phone);       // الهاتف
+    formData.append('entry.86186808', email);       // الإيميل
+    formData.append('entry.1776327165', summary);    // المنتجات
+    formData.append('entry.130865126', finalTotal); // المجموع الكلي
+
+    fetch(actionUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString()
+    }).then(() => {
+        alert("شكراً لك! تم استلام طلبك بنجاح.");
+        cart = []; totalCartPrice = 0;
+        updateCartUI();
+        closeModal();
+    });
+});
+
+function addToCart(name, price, event) {
+    totalCartPrice += price;
+    const item = cart.find(i => i.name === name);
+    if (item) item.quantity++; else cart.push({name, price, quantity: 1});
+    updateCartUI();
+    
+    const originalText = event.target.innerText;
+    event.target.innerText = "✓";
+    setTimeout(() => event.target.innerText = originalText, 700);
+}
+
+function updateCartUI() {
+    document.getElementById('cart-total').innerText = totalCartPrice.toLocaleString() + " د.ع";
+    document.getElementById('cart-count').innerText = cart.reduce((s, i) => s + i.quantity, 0);
+}
+
+function formatImg(url) {
+    if (!url) return 'https://placehold.co/400x400/2d5668/D4AF37?text=ELITE';
     if (url.includes('drive.google.com')) {
-        let id = "";
-        if (url.includes('/d/')) id = url.split('/d/')[1].split('/')[0];
-        else if (url.includes('id=')) id = url.split('id=')[1].split('&')[0];
-        return `https://drive.google.com/thumbnail?id=${id}&sz=w800`;
+        const id = url.split('id=')[1] || url.split('/d/')[1].split('/')[0];
+        return `https://drive.google.com/thumbnail?id=${id}&sz=w600`;
     }
     return url;
 }
 
-function getStockStatus(qty) {
-    const n = parseInt(qty) || 0;
-    if (n <= 0) return { label: "نفذت الكمية", class: "status-out", off: true };
-    if (n <= 5) return { label: "كمية محدودة", class: "status-low", off: false };
-    return { label: "متوفر بجودة", class: "status-good", off: false };
+function renderProducts(data) {
+    const grid = document.getElementById('main-grid');
+    grid.innerHTML = data.map(p => `
+        <div class="product-card">
+            <img src="${p.img}" class="product-img">
+            <div style="font-weight:700; margin:10px 0; height:40px; overflow:hidden;">${p.name}</div>
+            <span class="price-tag">${p.price.toLocaleString()} د.ع</span>
+            <button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, event)">إضافة للسلة</button>
+        </div>
+    `).join('');
 }
 
-async function init() {
-    try {
-        const res = await fetch(base);
-        const text = await res.text();
-        const json = JSON.parse(text.substring(text.indexOf("(") + 1, text.lastIndexOf(")")));
-        const rows = json.table.rows;
-
-        allProducts = rows.map(r => {
-            if (!r.c[1] || r.c[1].v === "Name" || r.c[1].v === "name") return null;
-            return {
-                name: r.c[1]?.v || "منتج",
-                price: parseFloat(r.c[2]?.v) || 0,
-                qty: r.c[3]?.v || 0,
-                type: r.c[4]?.v || "عام",
-                img: getDirectImgUrl(r.c[5]?.v),
-                cat: (r.c[6]?.v || "other").toLowerCase(),
-                featured: r.c[7]?.v === "TRUE" || r.c[7]?.v === true
-            };
-        }).filter(p => p !== null);
-
-        generateDynamicButtons();
-        renderProducts(allProducts);
-    } catch (e) { console.error("Data loading failed", e); }
-}
-
-function generateDynamicButtons() {
+function renderCategories() {
     const nav = document.getElementById('categoryNav');
-    if (!nav) return;
     const types = [...new Set(allProducts.map(p => p.type))].filter(t => t);
-    nav.innerHTML = `<div class="cat-chip active" onclick="filterByPageType('all', event)">الكل</div>`;
     types.forEach(t => {
         nav.innerHTML += `<div class="cat-chip" onclick="filterByPageType('${t}', event)">${t}</div>`;
     });
@@ -61,103 +136,12 @@ function generateDynamicButtons() {
 
 function filterByPageType(type, e) {
     document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
-    if (e && e.target) e.target.classList.add('active');
+    e.target.classList.add('active');
     renderProducts(type === 'all' ? allProducts : allProducts.filter(p => p.type === type));
 }
 
-function renderProducts(data) {
-    const mGrid = document.getElementById('main-grid');
-    const fGrid = document.getElementById('featured-grid');
-    const fSec = document.getElementById('featured-section');
-    if (mGrid) mGrid.innerHTML = ""; 
-    if (fGrid) fGrid.innerHTML = "";
-    let fCount = 0;
-
-    data.forEach(p => {
-        const s = getStockStatus(p.qty);
-        const cardHtml = `
-            <div class="product-card" style="${s.off ? 'opacity:0.7' : ''}">
-                <img src="${p.img}" class="product-img" onclick="expandImage('${p.img}')" onerror="this.src='https://placehold.co/400x400/251b23/db5b34?text=ELITES'">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="stock-badge ${s.class}">${s.label}</span>
-                    <span style="font-size:0.65rem; color:var(--accent); font-weight:bold;">${p.type}</span>
-                </div>
-                <div class="product-title">${p.name}</div>
-                <div class="price-tag">${s.off ? '---' : p.price.toLocaleString() + ' د.ع'}</div>
-                <button class="add-btn ${s.off ? 'btn-disabled' : ''}" ${s.off ? 'disabled' : ''} 
-                    onclick="addToCart('${p.name}', ${p.price}, event)">
-                    ${s.off ? 'غير متوفر' : 'إضافة للسلة'}
-                </button>
-            </div>`;
-        if (mGrid) mGrid.innerHTML += cardHtml;
-        if (p.featured && fGrid) { fGrid.innerHTML += cardHtml; fCount++; }
-    });
-    if (fSec) fSec.style.display = fCount > 0 ? 'block' : 'none';
-}
-
-// إضافة للسلة مع تخزين تفاصيل المنتج
-function addToCart(name, price, event) {
-    totalCartPrice += price;
-    
-    // التحقق إذا كان المنتج موجود مسبقاً لزيادة الكمية
-    const existing = cart.find(item => item.name === name);
-    if (existing) {
-        existing.quantity += 1;
-    } else {
-        cart.push({ name: name, price: price, quantity: 1 });
-    }
-
-    document.getElementById('cart-total').innerText = totalCartPrice.toLocaleString() + " د.ع";
-    document.getElementById('cart-count').innerText = cart.reduce((sum, item) => sum + item.quantity, 0);
-    
-    const btn = event.target;
-    const oldText = btn.innerText;
-    btn.innerText = "✓ تم";
-    btn.style.background = "#27ae60";
-    setTimeout(() => { btn.innerText = oldText; btn.style.background = ""; }, 800);
-}
-
-// دالة اتمام الطلب والتحويل لصفحة Requests
-function handleCheckout() {
-    if (cart.length === 0) {
-        alert("السلة فارغة! أضف بعض المنتجات أولاً.");
-        return;
-    }
-
-    let summary = "🛒 طلب جديد من المتجر:\n";
-    summary += "--------------------------\n";
-    cart.forEach(item => {
-        summary += `• ${item.name} (${item.quantity}x) - ${ (item.price * item.quantity).toLocaleString() } د.ع\n`;
-    });
-    summary += "--------------------------\n";
-    summary += `💰 المجموع الكلي: ${totalCartPrice.toLocaleString()} د.ع`;
-
-    const encodedData = encodeURIComponent(summary);
-    // سيفتح صفحة requests.html في تاب جديد ويمرر البيانات
-    window.open(`requests.html?order=${encodedData}`, '_blank');
-}
-
-// ربط الزر بالدالة
-document.querySelector('.checkout-btn').addEventListener('click', handleCheckout);
-
-function expandImage(src) {
-    const modal = document.getElementById('imageModal');
-    const modalImg = document.getElementById('expandedImg');
-    if (modal && modalImg) {
-        modal.style.display = "block";
-        modalImg.src = src;
-    }
-}
-
-function closeModal() {
-    const modal = document.getElementById('imageModal');
-    if (modal) modal.style.display = "none";
-}
-
 function filterProducts() {
-    const input = document.getElementById('searchInput');
-    if (!input) return;
-    const q = input.value.toLowerCase();
+    const q = document.getElementById('searchInput').value.toLowerCase();
     renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(q)));
 }
 
