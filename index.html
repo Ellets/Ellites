@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-
-    
-    <meta name="google-site-verification" content="d49268c780f02ef9" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elite Store | متجر النخبة</title>
@@ -16,46 +13,43 @@
     <header>
         <span class="logo">ELITES STORE <i class="fas fa-gem"></i> النخبة</span>
         <div class="search-container">
-            <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="ابحث في المتجر..." onkeyup="filterProducts()">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" placeholder="ابحث عن منتج..." onkeyup="filterProducts()">
         </div>
     </header>
 
     <nav class="category-nav" id="categoryNav">
-        <div class="cat-chip active" onclick="filterCat('all', event)">الكل</div>
-        <div class="cat-chip" onclick="filterCat('food', event)">المواد الغذائية</div>
-        <div class="cat-chip" onclick="filterCat('tools', event)">العدد والأدوات</div>
-        <div class="cat-chip" onclick="filterCat('books', event)">المكتبة</div>
-        <div class="cat-chip" onclick="filterCat('home', event)">المنزل</div>
+        <div class="cat-chip active" onclick="filterByPageType('all', event)">الكل</div>
     </nav>
 
-    <section id="featured-section">
-        <div class="section-header">عروض النخبة المختارة</div>
-        <div class="grid-container" id="featured-grid">
-            </div>
-    </section>
+    <div id="status-msg" class="status-message">جاري تحميل المنتجات...</div>
 
-    <section>
-        <div class="section-header">جميع المنتجات</div>
-        <div class="grid-container" id="main-grid">
-            </div>
+    <section id="main-section">
+        <div class="grid-container" id="main-grid"></div>
     </section>
 
     <div class="cart-bar">
-        <div>
-            <div id="cart-total">0 د.ع</div>
-            <small class="cart-details">القطع: <span id="cart-count">0</span></small>
+        <div class="cart-info">
+            <div id="cart-total" class="cart-total-text">0 د.ع</div>
+            <small>القطع: <span id="cart-count">0</span></small>
         </div>
-        <button class="checkout-btn">إتمام الطلب</button>
+        <button class="checkout-btn" onclick="handleCheckout()">إتمام الطلب</button>
     </div>
 
-    <div id="imageModal" class="modal" onclick="closeModal()">
-    <span class="close">&times;</span>
-    <img class="modal-content" id="expandedImg">
-    <div id="caption"></div>
-</div>
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content-form">
+            <h3>بيانات التوصيل</h3>
+            <form id="orderForm">
+                <input type="text" id="custName" placeholder="الاسم الكامل" class="form-input" required>
+                <input type="text" id="custCity" placeholder="المدينة / العنوان" class="form-input" required>
+                <input type="tel" id="custPhone" placeholder="رقم الهاتف" class="form-input" required>
+                <input type="email" id="custEmail" placeholder="البريد الإلكتروني" class="form-input" required>
+                <button type="submit" class="submit-order-btn">تأكيد وإرسال الطلب</button>
+                <button type="button" onclick="closeModal()" class="cancel-btn">إلغاء</button>
+            </form>
+        </div>
+    </div>
 
     <script src="script.js"></script>
-
 </body>
 </html>
