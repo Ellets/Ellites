@@ -204,3 +204,17 @@ header {
     top: 20px; right: 30px;
     color: white; font-size: 35px; cursor: pointer;
 }
+
+/* أضف هذا في نهاية ملف style.css */
+.add-btn {
+    transition: all 0.3s ease;
+}
+
+.checkout-btn {
+    transition: transform 0.2s active;
+    cursor: pointer;
+}
+
+.checkout-btn:active {
+    transform: scale(0.95);
+}
