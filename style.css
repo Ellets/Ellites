@@ -205,7 +205,6 @@ header {
     color: white; font-size: 35px; cursor: pointer;
 }
 
-/* أضف هذا في نهاية ملف style.css */
 .add-btn {
     transition: all 0.3s ease;
 }
