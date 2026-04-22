@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elite Store | متجر النخبة</title>
+    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=1.2">
+    
+    <link rel="stylesheet" href="style.css?v=5.0">
 </head>
 <body>
 
@@ -18,19 +20,24 @@
     </header>
 
     <nav class="category-nav" id="categoryNav">
-        <div class="cat-chip active" onclick="filterByPageType('all', event)">الكل</div>
+        <div class="cat-chip active" onclick="filterByCategory('all', event)">الكل</div>
     </nav>
 
-    <div id="status-msg" class="status-message">جاري تحميل المنتجات...</div>
+    <div id="status-msg" class="status-message" style="text-align:center; padding:20px; color: #D4AF37;">
+        جاري تحميل المنتجات...
+    </div>
 
-    <div class="grid-container" id="main-grid"></div>
+    <div class="grid-container" id="main-grid">
+        </div>
 
     <div class="cart-bar">
         <div class="cart-info">
             <div id="cart-total" class="cart-total-text">0 د.ع</div>
             <small>القطع: <span id="cart-count">0</span></small>
         </div>
-        <button class="checkout-btn" onclick="handleCheckout()">إتمام الطلب</button>
+        <button class="checkout-btn" onclick="handleCheckout()">
+            إتمام الطلب <i class="fas fa-shopping-bag"></i>
+        </button>
     </div>
 
     <div id="imageModal" class="modal" onclick="closeImageModal()">
@@ -40,18 +47,21 @@
 
     <div id="checkoutModal" class="modal">
         <div class="modal-content-form">
-            <h3>بيانات التوصيل</h3>
+            <h3 style="margin-top: 0; color: #234352;">بيانات التوصيل</h3>
             <form id="orderForm">
                 <input type="text" id="custName" placeholder="الاسم الكامل" class="form-input" required>
                 <input type="text" id="custCity" placeholder="المدينة / العنوان" class="form-input" required>
                 <input type="tel" id="custPhone" placeholder="رقم الهاتف" class="form-input" required>
                 <input type="email" id="custEmail" placeholder="البريد الإلكتروني" class="form-input" required>
-                <button type="submit" class="submit-order-btn">تأكيد وإرسال الطلب</button>
-                <button type="button" onclick="closeModal()" class="cancel-btn">إلغاء</button>
+                
+                <div style="margin-top: 15px;">
+                    <button type="submit" class="submit-order-btn">تأكيد وإرسال الطلب</button>
+                    <button type="button" onclick="closeModal()" class="cancel-btn">إلغاء</button>
+                </div>
             </form>
         </div>
     </div>
 
-    <script src="script.js?v=1.2"></script>
+    <script src="script.js?v=5.0"></script>
 </body>
 </html>
