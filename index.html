@@ -3,65 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite Store | متجر النخبة</title>
+    <title>Elite Admin Pro | لوحة التحكم</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="style.css?v=5.0">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <header>
-        <span class="logo">ELITE STORE <i class="fas fa-gem"></i> النخبة</span>
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="ابحث عن منتج..." onkeyup="filterProducts()">
-        </div>
-    </header>
-
-    <nav class="category-nav" id="categoryNav">
-        <div class="cat-chip active" onclick="filterByCategory('all', event)">الكل</div>
-    </nav>
-
-    <div id="status-msg" class="status-message" style="text-align:center; padding:20px; color: #D4AF37;">
-        جاري تحميل المنتجات...
+<div class="container">
+    <div class="tab-menu">
+        <button class="tab-btn active" onclick="openTab(event, 'add-tab')"><i class="fas fa-plus-circle"></i><span>إضافة</span></button>
+        <button class="tab-btn" onclick="openTab(event, 'inventory-tab')"><i class="fas fa-boxes"></i><span>المخزن</span></button>
+        <button class="tab-btn" onclick="openTab(event, 'orders-tab')"><i class="fas fa-list-check"></i><span>الطلبات</span></button>
     </div>
 
-    <div class="grid-container" id="main-grid">
-        </div>
-
-    <div class="cart-bar">
-        <div class="cart-info">
-            <div id="cart-total" class="cart-total-text">0 د.ع</div>
-            <small>القطع: <span id="cart-count">0</span></small>
-        </div>
-        <button class="checkout-btn" onclick="handleCheckout()">
-            إتمام الطلب <i class="fas fa-shopping-bag"></i>
-        </button>
-    </div>
-
-    <div id="imageModal" class="modal" onclick="closeImageModal()">
-        <span class="close-modal">&times;</span>
-        <img class="modal-content" id="imgFull">
-    </div>
-
-    <div id="checkoutModal" class="modal">
-        <div class="modal-content-form">
-            <h3 style="margin-top: 0; color: #234352;">بيانات التوصيل</h3>
-            <form id="orderForm">
-                <input type="text" id="custName" placeholder="الاسم الكامل" class="form-input" required>
-                <input type="text" id="custCity" placeholder="المدينة / العنوان" class="form-input" required>
-                <input type="tel" id="custPhone" placeholder="رقم الهاتف" class="form-input" required>
-                <input type="email" id="custEmail" placeholder="البريد الإلكتروني" class="form-input" required>
-                
-                <div style="margin-top: 15px;">
-                    <button type="submit" class="submit-order-btn">تأكيد وإرسال الطلب</button>
-                    <button type="button" onclick="closeModal()" class="cancel-btn">إلغاء</button>
+    <div id="add-tab" class="tab-content active">
+        <div class="admin-card">
+            <h2><i class="fas fa-plus"></i> منتج جديد</h2>
+            <form id="adminApiForm">
+                <div class="input-group"><label>الاسم</label><input type="text" id="p_name" required></div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div class="input-group"><label>السعر (د.ع)</label><input type="number" id="p_price" required></div>
+                    <div class="input-group"><label>الكمية</label><input type="number" id="p_qty" required></div>
                 </div>
+                <div class="input-group">
+                    <label>التصنيف</label>
+                    <select id="p_type_select" onchange="checkNewType(this.value)">
+                        <option value="">-- اختر --</option>
+                        <option value="NEW" style="color:var(--gold-primary)">+ تصنيف جديد</option>
+                    </select>
+                </div>
+                <div id="new_type_container" class="input-group" style="display:none;">
+                    <label>اسم التصنيف الجديد</label>
+                    <input type="text" id="p_new_type">
+                </div>
+                <div class="input-group"><label>رابط الصورة</label><input type="url" id="p_img"></div>
+                <button type="submit" id="submitBtn" class="submit-btn">حفظ المنتج</button>
             </form>
+            <div id="msg" style="text-align:center; margin-top:10px; font-weight:700;"></div>
         </div>
     </div>
 
-    <script src="script.js?v=5.0"></script>
+    <div id="inventory-tab" class="tab-content">
+        <div class="admin-card">
+            <div class="card-header">
+                <h2><i class="fas fa-warehouse"></i> المخزون</h2>
+                <a id="edit-inventory-link" href="#" target="_blank" class="sheet-edit-btn">Sheets</a>
+            </div>
+            <table>
+                <thead><tr><th style="width: 50px;">صورة</th><th>المنتج</th><th style="width: 65px;">السعر</th><th style="width: 40px;">العدد</th></tr></thead>
+                <tbody id="inventory-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="orders-tab" class="tab-content">
+        <div class="admin-card">
+            <div class="card-header">
+                <h2><i class="fas fa-shopping-bag"></i> الطلبات</h2>
+                <a id="edit-orders-link" href="#" target="_blank" class="sheet-edit-btn">Sheets</a>
+            </div>
+            <table>
+                <thead><tr><th style="width: 35%;">الزبون</th><th style="width: 40%;">الطلب</th><th style="width: 25%;">تواصل</th></tr></thead>
+                <tbody id="orders-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
